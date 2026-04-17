@@ -6,11 +6,12 @@ from flask import Flask, jsonify, request
 from google import genai
 
 from src.gemini_image import generate_image
+from src.config import settings
 
 
 app = Flask(__name__)
 
-gemini_client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+gemini_client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 ALLOWED_MIME_TYPES = {"image/png", "image/jpeg", "image/webp"}
 
@@ -188,6 +189,6 @@ def health():
     
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
+    port = int(settings.PORT)
     app.run(host="0.0.0.0", port=port, debug=False)
 

@@ -1,4 +1,4 @@
-from src.config import (
+from src.config.settings import (
     ALLOWED_ASPECT_RATIOS,
     ALLOWED_IMAGE_SIZES,
     ALLOWED_INPUT_MIME_TYPES,

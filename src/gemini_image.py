@@ -5,7 +5,7 @@ from typing import Optional
 from google import genai
 from google.genai import types
 
-from src.config import DEFAULT_MAX_INPUT_IMAGES, DEFAULT_MODEL
+from src.config.settings import DEFAULT_MAX_INPUT_IMAGES, DEFAULT_MODEL
 from src.utils import decode_b64_image, sanitize_filename
 from src.validators import (
     validate_input_images_count,
