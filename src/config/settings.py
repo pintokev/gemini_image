@@ -12,4 +12,4 @@ DEFAULT_MAX_PROMPT_LENGTH = 5000
 
 PORT = os.environ.get("PORT", 8080)
 
-GEMINI_API_KEY = get_config("tokenGemini", "tokenGemini-prd")
+GEMINI_API_KEY = get_config("GEMINI_API_KEY", "tokenGemini-prd")
