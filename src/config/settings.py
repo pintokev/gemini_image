@@ -11,5 +11,6 @@ DEFAULT_MAX_INPUT_IMAGES = 10
 DEFAULT_MAX_PROMPT_LENGTH = 5000
 
 PORT = os.environ.get("PORT", 8080)
+INTERNAL_API_TOKEN = get_config("INTERNAL_API_TOKEN", required=False)
 
 GEMINI_API_KEY = get_config("GEMINI_API_KEY", "tokenGemini-prd")

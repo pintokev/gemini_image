@@ -1,4 +1,5 @@
 import base64
+import hmac
 import os
 from threading import Lock
 
@@ -18,6 +19,19 @@ ALLOWED_MIME_TYPES = {"image/png", "image/jpeg", "image/webp"}
 # Historique simple en mémoire : {thread_id: {"b64_data": "...", "mime_type": "..."}}
 LAST_IMAGE_BY_THREAD_ID = {}
 LAST_IMAGE_LOCK = Lock()
+
+
+@app.before_request
+def require_internal_api_token():
+    expected_token = settings.INTERNAL_API_TOKEN
+    if not expected_token or request.path == "/health":
+        return None
+
+    provided_token = request.headers.get("X-Internal-Api-Token", "")
+    if not hmac.compare_digest(provided_token, expected_token):
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    return None
 
 
 def extract_images_from_request():
@@ -102,26 +116,25 @@ def images():
                 input_images_b64 = [last_image["b64_data"]]
                 input_mime_type = last_image["mime_type"]
 
-            result = generate_image(
-                prompt=prompt,
-                input_images_b64=input_images_b64 or None,
-                input_mime_type=input_mime_type or "image/png",
-                client=gemini_client,
-                model=request.form.get("model", "gemini-3.1-flash-image-preview"),
-                aspect_ratio=request.form.get("aspect_ratio", "1:1"),
-                image_size=request.form.get("image_size", "1K"),
-                thinking_level=request.form.get("thinking_level", "HIGH"),
-                person_generation=request.form.get("person_generation") or None,
-                use_google_image_search=request.form.get("use_google_image_search", "false").lower() == "true",
-                file_prefix=request.form.get("file_prefix", "image"),
-                max_input_images=int(request.form.get("max_input_images", 10)),
-            )
+        result = generate_image(
+            prompt=prompt,
+            input_images_b64=input_images_b64 or None,
+            input_mime_type=input_mime_type or "image/png",
+            client=gemini_client,
+            model=request.form.get("model", "gemini-3.1-flash-image-preview"),
+            aspect_ratio=request.form.get("aspect_ratio", "1:1"),
+            image_size=request.form.get("image_size", "1K"),
+            thinking_level=request.form.get("thinking_level", "HIGH"),
+            person_generation=request.form.get("person_generation") or None,
+            use_google_image_search=request.form.get("use_google_image_search", "false").lower() == "true",
+            file_prefix=request.form.get("file_prefix", "image"),
+            max_input_images=int(request.form.get("max_input_images", 10)),
+        )
 
-            # On mémorise la première image générée comme dernière image du thread
-            if thread_id and result.get("images"):
-                set_last_image_for_thread(thread_id, result["images"][0])
+        if thread_id and result.get("images"):
+            set_last_image_for_thread(thread_id, result["images"][0])
 
-            return jsonify(build_json_response(result)), 200
+        return jsonify(build_json_response(result)), 200
 
     except ValueError as e:
         return jsonify({
@@ -191,4 +204,3 @@ def health():
 if __name__ == "__main__":
     port = int(settings.PORT)
     app.run(host="0.0.0.0", port=port, debug=False)
-
